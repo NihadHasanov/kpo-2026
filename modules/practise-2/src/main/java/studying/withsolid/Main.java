@@ -22,8 +22,8 @@ public class Main {
                 .build();
 
         var reportService = new ReportService(
-                new TextReportSaver(),
-                new EmailReportSender()
+                new TextReportSaver(),      // реализует ReportSaver
+                new EmailReportSender()     // реализует ReportSender
         );
 
         reportService.process(report, "example@example.com");
