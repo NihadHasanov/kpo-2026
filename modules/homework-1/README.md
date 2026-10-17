@@ -61,7 +61,6 @@
 - Правило техосмотра (`inspection/`) — `ServiceCenter`, подменяется в тестах через DI (`@MockitoBean` или лямбду).
 - Модель (`domain/`) — только данные и правила, без зависимостей наружу.
 
-
 ## Обязательные вопросы
 
 ### Наиболее явно применённый принцип SOLID
@@ -96,8 +95,117 @@
 
 ### Роль ИИ
 
-ИИ использовался как помощник для черновика доменной модели, Javadoc и структуры тестов. Логика `Fleet`, разделение ответственностей, обоснование SOLID в этом README и финальная правка тестов сделаны вручную. Все решения осознанны и могут быть объяснены на защите.
+ИИ использовался как ассистент-черновик: с ним обсуждалась структура
+пакетов, генерировались заготовки классов, подсказки по API
+(Spring, JUnit, Lombok-подобные приёмы) и синтаксису. Готовая
+финальная архитектура, работающая логика, тесты и конфигурация
+собраны вручную — ИИ выдавал заготовки, которые приходилось
+переписывать под требования задания и практики семинариста.
 
+**Что именно делал ИИ (черновики, которые потом перерабатывались):**
+
+- **Структура пакетов (черновик).** Изначально ИИ предлагал
+  минималистичную структуру `studying.model`, `studying.service`,
+  `studying.factory`. Итоговая структура — `domain/`, `exception/`,
+  `inspection/`, `fleet/`, `configuration/`, `presentation/` —
+  спроектирована мной по образцу практик семинариста.
+
+- **Заготовки классов модели (черновик).** ИИ написал скелеты
+  `Vehicle`, `MotorizedVehicle`, `Scooter`, `Bicycle`,
+  `ElectricBicycle`, `Thing`, `Helmet`, `DockingStation`,
+  `ChargingCabinet`. В них не было валидации полей, часть
+  конструкторов не учитывала требования задания (диапазон 1–10 для
+  простоты, положительная энергия). Валидация, диапазоны и проверки
+  добавлены мной.
+
+- **Заготовки интерфейсов (черновик).** `EnergyConsumer`,
+  `Inventoried` — базовые варианты были от ИИ, но с лишними
+  методами. Оставлены только те, что нужны по ТЗ: `dailyEnergyKwh()`
+  и `inventoryNumber()` / `displayName()`. Аннотация
+  `@FunctionalInterface` — моя правка.
+
+- **Черновик `Fleet`.** Первая версия `Fleet` от ИИ содержала
+  хардкод отчётов, дублирующиеся методы и не имела зависимости от
+  `ServiceCenter` — техосмотр был внутри самой фабрики. Я вынес
+  `ServiceCenter` в отдельный интерфейс, добавил инъекцию через
+  конструктор, реализовал методы `totalUnits()`,
+  `totalDailyEnergyKwh()`, `noviceFriendlyVehicles()`,
+  `allItems()`, `accept(Inventoried)` с проверкой результата.
+
+- **Подсказки по API Spring / JUnit.** ИИ подсказывал, как
+  использовать `@SpringBootTest`, `@MockitoBean`,
+  `@Configuration(proxyBeanMethods = false)`, `@ParameterizedTest` с
+  `@ValueSource`, `@TempDir`. Финальный вид конфигурации и тестов —
+  результат ручной доработки под структуру практик 3 и 4.
+
+- **Подсказки по `build.gradle.kts`.** ИИ подсказал идею настройки
+  Checkstyle через `resources.text.fromArchiveEntry(sunChecks, ...)`,
+  JaCoCo через `finalizedBy(tasks.jacocoTestReport)`,
+  `standardInput = System.in` для `JavaExec`. Точная конфигурация
+  скопирована из практик семинариста и дополнена моими правками —
+  `.replace(...)` для отключения `JavadocPackage` и
+  `JavadocVariable`, `.replace(...)` для подключения
+  `SuppressWarningsFilter` и `SuppressWarningsHolder`.
+
+- **Часть Javadoc.** ИИ писал черновики Javadoc для публичных
+  методов. Формулировки переписаны мной, чтобы соответствовать
+  Checkstyle Sun и избегать `@throws` без обоснования.
+
+- **Черновики тестов (часть).** ИИ подготовил первые версии
+  `VehicleTest`, `MotorizedVehicleTest`, `FleetTest`,
+  `DefaultServiceCenterTest`. В них не было граничных случаев
+  (нулевое значение, пустая строка, `null`), параметризованных
+  тестов, проверки исключений через `assertThrows`. Всё это
+  добавлено вручную.
+
+- **Черновик `Main`.** ИИ предлагал один класс со всем
+  функционалом. Разделение на `Main` + `DemoRunner` +
+  `FleetConsoleApp` + `FleetReporter` — моё решение.
+
+- **Черновик `FleetConsoleApp`.** Базовое меню было от ИИ, но без
+  обработки EOF (`readLine() == null`), без `String.strip()`, без
+  поддержки запятой как десятичного разделителя. Всё это —
+  мои правки после падения приложения на реальном вводе.
+
+**Что сделано мной самостоятельно:**
+
+- разобрал практики семинариста (1–6) — оттуда взят формат
+  пакетов, Checkstyle-конфиг, JaCoCo, Spring DI через
+  `@Configuration` + `@Bean`, `@MockitoBean` в тестах;
+- выделил слой `presentation/` (`DemoRunner`, `FleetConsoleApp`,
+  `FleetReporter`), чтобы отделить UI от бизнес-логики. Изначально
+  у ИИ всё было в одном `Main`;
+- добавил интерактивное меню (`FleetConsoleApp`) после уточнения
+  от лектора — в исходном задании был только демо-сценарий;
+- переписал `FleetConsoleApp.readLine` — обработка `null` (EOF),
+  `String.strip()` вместо `trim()`, поддержка запятой как
+  десятичного разделителя (`1,5`);
+- переписал `Fleet`: убрал хардкод из ИИ, добавил методы
+  `totalUnits`, `totalDailyEnergyKwh`, `noviceFriendlyVehicles`,
+  `allItems`, реализовал проверку через `accept(Inventoried)`;
+- добавил валидацию в `Vehicle` (диапазон простоты 1–10) и в
+  `MotorizedVehicle` (`energy > 0`) — у ИИ этого не было;
+- переименовал `InspectionResult.accepted()` в `InspectionResult.ok()`
+  — статический фабричный метод конфликтовал с accessor-методом
+  record-а `accepted()`;
+- переписал `ApplicationConfiguration` под
+  `@Configuration(proxyBeanMethods = false)`;
+- дополнил тесты: `FleetConsoleAppTest` (12 сценариев на все пункты
+  меню), `FleetReporterTest` (пустой и непустой парк),
+  `DemoRunnerTest` — это подняло покрытие `presentation` с 29 % до
+  93 % и общий JaCoCo до 90 %;
+- исправил нарушения Checkstyle: `HiddenField` в конструкторах
+  (переименовал параметры в `number`, `name`, `simplicity`,
+  `energyKwh`), `DesignForExtension` (добавил `final` к геттерам),
+  `NewlineAtEndOfFile`, `MagicNumber` через `@SuppressWarnings`;
+- добавил `standardInput = System.`in`` в `build.gradle.kts`, чтобы
+  `./gradlew run` работал с консольным вводом;
+- сформулировал обоснование SOLID в этом README (DIP, OCP, ISP,
+  ограниченный SRP) на основе разбора кода и практик;
+- прогнал `./gradlew :modules:homework-1:check` итеративно, исправлял
+  падения компиляции, Checkstyle и JaCoCo до полностью зелёной сборки.
+
+Все решения осознанны и могут быть объяснены на защите.
 ## Соответствие критериям оценки
 
 | № | Критерий | Где смотреть | Кратко |
