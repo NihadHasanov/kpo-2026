@@ -205,7 +205,6 @@
 - прогнал `./gradlew :modules:homework-1:check` итеративно, исправлял
   падения компиляции, Checkstyle и JaCoCo до полностью зелёной сборки.
 
-Все решения осознанны и могут быть объяснены на защите.
 ## Соответствие критериям оценки
 
 | № | Критерий | Где смотреть | Кратко |
@@ -227,3 +226,4 @@
 - [x] `./gradlew :modules:homework-1:run` демонстрирует сценарии.
 - [x] `checkstyleMain` и `checkstyleTest` — 0 violations.
 - [x] `./gradlew :modules:homework-1:clean :modules:homework-1:check` — зелёный.
+
