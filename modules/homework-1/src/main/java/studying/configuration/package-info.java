@@ -1,2 +1,2 @@
-/** Spring configuration of the fleet application. */ 
-package studying.configuration; 
+/** Spring configuration of the fleet application. */
+package studying.configuration;

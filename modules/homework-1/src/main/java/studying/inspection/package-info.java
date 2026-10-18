@@ -1,2 +1,2 @@
-/** Service-center contracts and default implementations. */ 
-package studying.inspection; 
+/** Service-center contracts and default implementations. */
+package studying.inspection;

@@ -1,2 +1,2 @@
-/** Presentation layer: console menu, demo runner, reports. */ 
-package studying.presentation; 
+/** Presentation layer: console menu, demo runner, reports. */
+package studying.presentation;

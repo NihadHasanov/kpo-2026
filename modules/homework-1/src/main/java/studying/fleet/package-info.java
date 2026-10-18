@@ -1,2 +1,2 @@
-/** In-memory fleet storage and reporting. */ 
-package studying.fleet; 
+/** In-memory fleet storage and reporting. */
+package studying.fleet;
