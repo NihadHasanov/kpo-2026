@@ -30,4 +30,5 @@ public final class Main {
                 new InputStreamReader(System.in, StandardCharsets.UTF_8));
         new FleetConsoleApp(fleet, reader, System.out).run();
     }
+
 }
